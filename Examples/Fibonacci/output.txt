@@ -1,0 +1,11 @@
+f[0] is 0
+f[1] is 1
+f[2] is 1
+f[3] is 2
+f[4] is 3
+f[5] is 5
+f[6] is 8
+f[7] is 13
+f[8] is 21
+f[9] is 34
+f[10] is 55
