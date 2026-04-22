@@ -1,0 +1,15 @@
+// Create a square matrix of dimension N, with values 1, 2, 3, ..., N, ..., N * N
+
+int dimension
+int a[1000][1000]
+
+read dimension
+
+for i 1 dimension 1{
+    for j 1 dimension 1{
+        assign a[i][j]: (i - 1) * dimension + j
+        print a[i][j]
+        print " "
+    }
+    print "endl"
+}
