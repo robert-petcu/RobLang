@@ -5,7 +5,7 @@ RobLang is a custom interpreted pseudolanguage. The C++ interpreter parses the e
 
 ## 1. Data Types
 
-The language supports four core data types and their vector (array) and matrix counterparts.
+The language supports four core data types and their vector (array) counterparts.
 
 |**Data Type**|**Description**|**Syntax Example**|
 |---|---|---|
@@ -55,6 +55,11 @@ Under the hood, all variables are dynamically stored in `std::unordered_map` str
     -   **Variables/Expressions:** `print x + 5`
         
     -   **Special case:** `print "endl"` outputs a newline character.
+-   `//` (comment)
+    
+    Adds a comment line to the code.
+    
+    **Syntax:** ```// <comment>```
         
 
 ## 3. Expression Evaluator
