@@ -1,4 +1,4 @@
-// Create a square matrix of dimension N, with values 1, 2, 3, ..., N, ..., N * N
+// Generate a square matrix of dimension N, with values 1, 2, 3, ..., N, ..., N * N
 
 int dimension
 int a[1000][1000]
