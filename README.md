@@ -152,7 +152,7 @@ Here is a complete RobLang program that generates the Fibonacci sequence:
 
 ```
 int num_elements
-vector_int f[100]
+int f[100]
 
 assign f[0]: 0
 assign f[1]: 1
