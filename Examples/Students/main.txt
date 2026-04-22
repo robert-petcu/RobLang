@@ -1,0 +1,18 @@
+// Reads a list of student names and outputs them
+
+int num_students
+string name[100]
+
+read num_students
+
+for i 1 num_students 1{
+    read name[i]
+}
+
+print "The names of the students are:"
+print "endl"
+
+for i 1 num_students 1{
+    print name[i]
+    print "endl"
+}
