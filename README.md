@@ -1,3 +1,4 @@
+
 # RobLang
 
 RobLang is a custom interpreted pseudolanguage. The C++ interpreter parses the entire source code into a vector of strings and executes it line by line, managing nested blocks through recursion.
@@ -12,7 +13,8 @@ The language supports four core data types and their vector (array) counterparts
 |`double`|Stores decimal numbers|`double y`|
 |`bool`|Stores logical values|`bool status`|
 |`string`|Stores character strings|`string name`|
-|`vector_...`|Vector of a specific type|`vector_int v[100]`|
+|`vector_...`|Vector of a specific type|`int v[100]`|
+|`matrix_...`|Matrix of a specific type|`double a[100][100]`|
 
 Under the hood, all variables are dynamically stored in `std::unordered_map` structures corresponding to their data type (e.g., `memory_int`, `memory_string`, `memory_vector_double`).
 
