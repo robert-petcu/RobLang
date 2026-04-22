@@ -1,0 +1,6 @@
+The names of the students are:
+Robert
+Matei
+Mihai
+Gabi
+Stefan
