@@ -406,29 +406,52 @@ void assign(int &i) {
 
 void print(int &i) {
     skip_spaces(i);
-    std::string expr = current_line.substr(i);
+    std::string line_remainder = current_line.substr(i);
 
-    if (expr[0] == '"') {
-        if (expr == "\"endl\"") {
-            fout << '\n';
-        } else {
-            for (int j = 1; j < expr.size() && expr[j] != '"'; j++) {
-                fout << expr[j];
-            }
+    if (line_remainder[0] == '"') {
+        if (line_remainder == "\"endl\"") fout << '\n';
+        else {
+            for (int j = 1; j < line_remainder.size() && line_remainder[j] != '"'; j++)
+                fout << line_remainder[j];
         }
-    } else {
-        if (variable_types.count(expr) && variable_types[expr] == "string") {
-            fout << memory_string[expr];
-        } else if (variable_types.count(expr) && variable_types[expr] == "vector_string") {
-            int pos = 0;
-            fout << evaluate_logic(expr, pos);
-        } else {
-            int pos = 0;
-            fout << evaluate_logic(expr, pos);
-        }
+        return;
+    }
+
+    int pos = 0;
+    std::string name;
+    while (pos < line_remainder.size() && (isalnum(line_remainder[pos]) || line_remainder[pos] == '_')) {
+        name += line_remainder[pos++];
+    }
+
+    int idx1 = 0, idx2 = 0;
+    bool has_idx1 = false, has_idx2 = false;
+
+    skip_spaces_expr(line_remainder, pos);
+    if (pos < line_remainder.size() && line_remainder[pos] == '[') {
+        pos++;
+        idx1 = (int)evaluate_logic(line_remainder, pos);
+        if (line_remainder[pos] == ']') pos++;
+        has_idx1 = true;
+    }
+
+    skip_spaces_expr(line_remainder, pos);
+    if (pos < line_remainder.size() && line_remainder[pos] == '[') {
+        pos++;
+        idx2 = (int)evaluate_logic(line_remainder, pos);
+        if (line_remainder[pos] == ']') pos++;
+        has_idx2 = true;
+    }
+
+    std::string type = variable_types[name];
+
+    if (type == "string") fout << memory_string[name];
+    else if (type == "vector_string") fout << memory_vector_string[name][idx1];
+    else if (type == "matrix_string") fout << memory_matrix_string[name][idx1][idx2];
+    else {
+        int start_pos = 0;
+        fout << evaluate_logic(line_remainder, start_pos);
     }
 }
-
 std::vector<std::string> read_block(const std::vector<std::string>& source, int& line_idx) {
     std::vector<std::string> block;
     int nested = 0;
