@@ -1,3 +1,5 @@
+// Generate the Fibonacci series up to num_elements
+
 int num_elements
 int f[100]
 
