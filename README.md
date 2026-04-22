@@ -5,7 +5,7 @@ RobLang is a custom interpreted pseudolanguage. The C++ interpreter parses the e
 
 ## 1. Data Types
 
-The language supports four core data types and their vector (array) counterparts.
+The language supports four core data types and their vector (array) and matrix counterparts.
 
 |**Data Type**|**Description**|**Syntax Example**|
 |---|---|---|
