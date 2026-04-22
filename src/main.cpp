@@ -25,8 +25,14 @@ std::unordered_map<std::string, std::vector<bool>> memory_vector_bool;
 std::unordered_map<std::string, std::vector<double>> memory_vector_double;
 std::unordered_map<std::string, std::vector<std::string>> memory_vector_string;
 
+std::unordered_map<std::string, std::vector<std::vector<int>>> memory_matrix_int;
+std::unordered_map<std::string, std::vector<std::vector<bool>>> memory_matrix_bool;
+std::unordered_map<std::string, std::vector<std::vector<double>>> memory_matrix_double;
+std::unordered_map<std::string, std::vector<std::vector<std::string>>> memory_matrix_string;
+
 std::unordered_set<std::string> valid_types = {"int", "bool", "double", "string"};
 std::unordered_set<std::string> valid_vector_types = {"vector_int", "vector_bool", "vector_double", "vector_string"};
+std::unordered_set<std::string> valid_matrix_types = {"matrix_int", "matrix_bool", "matrix_double", "matrix_string"};
 
 void execute_current_line(const std::vector<std::string>& source, int& line_idx);
 std::vector<std::string> read_block(const std::vector<std::string>& source, int& line_idx);
@@ -82,13 +88,28 @@ double evaluate_factor(const std::string& expr, int& pos) {
     skip_spaces_expr(expr, pos);
     if (pos < expr.size() && expr[pos] == '[') {
         pos++;
-        int idx = (int)evaluate_logic(expr, pos);
+        int idx_i = (int)evaluate_logic(expr, pos);
         skip_spaces_expr(expr, pos);
         if (pos < expr.size() && expr[pos] == ']') pos++;
 
-        if (variable_types[var_name] == "vector_int") return memory_vector_int[var_name][idx];
-        if (variable_types[var_name] == "vector_double") return memory_vector_double[var_name][idx];
-        if (variable_types[var_name] == "vector_bool") return memory_vector_bool[var_name][idx];
+        skip_spaces_expr(expr, pos);
+
+        if (pos < expr.size() && expr[pos] == '[') {
+            pos++;
+            int idx_j = (int)evaluate_logic(expr, pos);
+            skip_spaces_expr(expr, pos);
+            if (pos < expr.size() && expr[pos] == ']') pos++;
+
+            skip_spaces_expr(expr, pos);
+
+            if (variable_types[var_name] == "matrix_int") return memory_matrix_int[var_name][idx_i][idx_j];
+            if (variable_types[var_name] == "matrix_bool") return memory_matrix_bool[var_name][idx_i][idx_j];
+            if (variable_types[var_name] == "matrix_double") return memory_matrix_double[var_name][idx_i][idx_j];
+        }
+
+        if (variable_types[var_name] == "vector_int") return memory_vector_int[var_name][idx_i];
+        if (variable_types[var_name] == "vector_bool") return memory_vector_bool[var_name][idx_i];
+        if (variable_types[var_name] == "vector_double") return memory_vector_double[var_name][idx_i];
     }
 
     if (variable_types[var_name] == "int") return memory_int[var_name];
@@ -173,43 +194,74 @@ void declare_type(const std::string& command, int &i) {
         name += current_line[i++];
     }
 
-    variable_types[name] = command;
-    if (command == "int") memory_int[name] = 0;
-    else if (command == "bool") memory_bool[name] = 0;
-    else if (command == "double") memory_double[name] = 0.0;
-    else if (command == "string") memory_string[name] = "";
-}
-
-void declare_vector_type(const std::string& command, int &i) {
     skip_spaces(i);
 
-    std::string name;
-    while (i < current_line.size() && (isalnum(current_line[i]) || current_line[i] == '_')) {
-        name += current_line[i++];
+    bool is_vector = false;
+    bool is_matrix = false;
+    std::string size_n;
+    std::string size_m;
+
+    if (i < current_line.size() && current_line[i] == '[') {
+        is_vector = true;
+        i++;
+        while (i < current_line.size() && current_line[i] != ']') {
+            size_n += current_line[i++];
+        }
+        if (i < current_line.size() && current_line[i] == ']') i++;
     }
 
     skip_spaces(i);
 
     if (i < current_line.size() && current_line[i] == '[') {
+        is_matrix = true;
+        is_vector = false;
         i++;
-        std::string size_expr;
         while (i < current_line.size() && current_line[i] != ']') {
-            size_expr += current_line[i++];
+            size_m += current_line[i++];
         }
-        i++;
+        if (i < current_line.size() && current_line[i] == ']') i++;
+    }
 
-        int pos = 0;
-        int size = (int)evaluate_logic(size_expr, pos);
+    if (is_matrix) {
+        int pos_n = 0, pos_m = 0;
+        int n = (int)evaluate_logic(size_n, pos_n);
+        int m = (int)evaluate_logic(size_m, pos_m);
 
+        variable_types[name] = "matrix_" + command;
+
+        if (command == "int") {
+            memory_matrix_int[name].resize(n, std::vector<int>(m, 0));
+        }
+        else if (command == "bool") {
+            memory_matrix_bool[name].resize(n, std::vector<bool>(m, false));
+        }
+        else if (command == "double") {
+            memory_matrix_double[name].resize(n, std::vector<double>(m, 0.0));
+        }
+        else if (command == "string") {
+            memory_matrix_string[name].resize(n, std::vector<std::string>(m, ""));
+        }
+    }
+    else if (is_vector) {
+        int pos_n = 0;
+        int n = (int)evaluate_logic(size_n, pos_n);
+
+        variable_types[name] = "vector_" + command;
+
+        if (command == "int") memory_vector_int[name].resize(n, 0);
+        else if (command == "bool") memory_vector_bool[name].resize(n, false);
+        else if (command == "double") memory_vector_double[name].resize(n, 0.0);
+        else if (command == "string") memory_vector_string[name].resize(n, "");
+    }
+    else {
         variable_types[name] = command;
 
-        if (command == "vector_int") memory_vector_int[name].resize(size);
-        else if (command == "vector_bool") memory_vector_bool[name].resize(size);
-        else if (command == "vector_double") memory_vector_double[name].resize(size);
-        else if (command == "vector_string") memory_vector_string[name].resize(size);
+        if (command == "int") memory_int[name] = 0;
+        else if (command == "bool") memory_bool[name] = false;
+        else if (command == "double") memory_double[name] = 0.0;
+        else if (command == "string") memory_string[name] = "";
     }
 }
-
 void read(int &i) {
     skip_spaces(i);
     std::string name;
@@ -217,22 +269,36 @@ void read(int &i) {
         name += current_line[i++];
     }
 
-    int position = 0;
+    int position1 = 0;
+    int position2 = 0;
+
     if (i < current_line.size() && current_line[i] == '[') {
         i++;
         std::string idx_expr;
         while(i < current_line.size() && current_line[i] != ']') idx_expr += current_line[i++];
         i++;
         int p_idx = 0;
-        position = (int)evaluate_logic(idx_expr, p_idx);
+        position1 = (int)evaluate_logic(idx_expr, p_idx);
+    }
+
+    skip_spaces(i);
+
+    if (i < current_line.size() && current_line[i] == '[') {
+        i++;
+        std::string idx_expr;
+        while(i < current_line.size() && current_line[i] != ']') idx_expr += current_line[i++];
+        i++;
+        int p_idx = 0;
+        position2 = (int)evaluate_logic(idx_expr, p_idx);
     }
 
     std::string full_content;
     fin >> full_content;
 
-    if (variable_types[name] == "string" || variable_types[name] == "vector_string") {
+    if (variable_types[name] == "string" || variable_types[name] == "vector_string" || variable_types[name] == "matrix_string") {
         if (variable_types[name] == "string") memory_string[name] = full_content;
-        else memory_vector_string[name][position] = full_content;
+        else if (variable_types[name] == "vector_string") memory_vector_string[name][position1] = full_content;
+        else memory_matrix_string[name][position1][position2] = full_content;
     } else {
         std::string numeric_part;
         int j = 0;
@@ -262,9 +328,12 @@ void read(int &i) {
         if (variable_types[name] == "int") memory_int[name] = (int)val;
         else if (variable_types[name] == "bool") memory_bool[name] = (val != 0);
         else if (variable_types[name] == "double") memory_double[name] = val;
-        else if (variable_types[name] == "vector_int") memory_vector_int[name][position] = (int)val;
-        else if (variable_types[name] == "vector_bool") memory_vector_bool[name][position] = (val != 0);
-        else if (variable_types[name] == "vector_double") memory_vector_double[name][position] = val;
+        else if (variable_types[name] == "vector_int") memory_vector_int[name][position1] = (int)val;
+        else if (variable_types[name] == "vector_bool") memory_vector_bool[name][position1] = (val != 0);
+        else if (variable_types[name] == "vector_double") memory_vector_double[name][position1] = val;
+        else if (variable_types[name] == "matrix_int") memory_matrix_int[name][position1][position2] = (int)val;
+        else if (variable_types[name] == "matrix_bool") memory_matrix_bool[name][position1][position2] = (val != 0);
+        else if (variable_types[name] == "matrix_double") memory_matrix_double[name][position1][position2] = val;
     }
 }
 
@@ -275,23 +344,37 @@ void assign(int &i) {
         name += current_line[i++];
     }
 
-    int position = 0;
+    int position1 = 0;
+    int position2 = 0;
+
     if (i < current_line.size() && current_line[i] == '[') {
         i++;
         std::string idx_expr;
         while(i < current_line.size() && current_line[i] != ']') idx_expr += current_line[i++];
         i++;
         int p_idx = 0;
-        position = (int)evaluate_logic(idx_expr, p_idx);
+        position1 = (int)evaluate_logic(idx_expr, p_idx);
     }
 
     skip_spaces(i);
+
+    if (i < current_line.size() && current_line[i] == '[') {
+        i++;
+        std::string idx_expr;
+        while(i < current_line.size() && current_line[i] != ']') idx_expr += current_line[i++];
+        i++;
+        int p_idx = 0;
+        position2 = (int)evaluate_logic(idx_expr, p_idx);
+    }
+
+    skip_spaces(i);
+
     if (i < current_line.size() && current_line[i] == ':') i++;
     skip_spaces(i);
 
     std::string content = current_line.substr(i);
 
-    if (variable_types[name] == "string" || variable_types[name] == "vector_string") {
+    if (variable_types[name] == "string" || variable_types[name] == "vector_string" || variable_types[name] == "matrix_string") {
         std::string final_str;
         if (content.size() >= 2 && content.front() == '"') {
             int j = 1;
@@ -303,7 +386,8 @@ void assign(int &i) {
         }
 
         if (variable_types[name] == "string") memory_string[name] = final_str;
-        else memory_vector_string[name][position] = final_str;
+        else if (variable_types[name] == "vector_string") memory_vector_string[name][position1] = final_str;
+        else memory_matrix_string[name][position1][position2] = final_str;
     } else {
         int expr_pos = 0;
         double val = evaluate_logic(content, expr_pos);
@@ -311,9 +395,12 @@ void assign(int &i) {
         if (variable_types[name] == "int") memory_int[name] = (int)val;
         else if (variable_types[name] == "bool") memory_bool[name] = (val != 0);
         else if (variable_types[name] == "double") memory_double[name] = val;
-        else if (variable_types[name] == "vector_int") memory_vector_int[name][position] = (int)val;
-        else if (variable_types[name] == "vector_bool") memory_vector_bool[name][position] = (val != 0);
-        else if (variable_types[name] == "vector_double") memory_vector_double[name][position] = val;
+        else if (variable_types[name] == "vector_int") memory_vector_int[name][position1] = (int)val;
+        else if (variable_types[name] == "vector_bool") memory_vector_bool[name][position1] = (val != 0);
+        else if (variable_types[name] == "vector_double") memory_vector_double[name][position1] = val;
+        else if (variable_types[name] == "matrix_int") memory_matrix_int[name][position1][position2] = (int)val;
+        else if (variable_types[name] == "matrix_bool") memory_matrix_bool[name][position1][position2] = (val != 0);
+        else if (variable_types[name] == "matrix_double") memory_matrix_double[name][position1][position2] = val;
     }
 }
 
@@ -490,7 +577,6 @@ void execute_current_line(const std::vector<std::string>& source, int& line_idx)
     get_command(command, i);
 
     if (valid_types.count(command)) declare_type(command, i);
-    else if (valid_vector_types.count(command)) declare_vector_type(command, i);
     else if (command == "read") read(i);
     else if (command == "assign") assign(i);
     else if (command == "print") print(i);
