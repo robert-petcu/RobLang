@@ -8,7 +8,7 @@ assign f[1]: 1
 
 read num_elements
 
-for i 0 num_elements 1 {
+for int i: 0; i <= num_elements; assign i: i + 1 {
     if i >= 2 {
         assign f[i]: f[i - 1] + f[i - 2]
     }
