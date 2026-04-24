@@ -196,58 +196,33 @@ void declare_type(const std::string& command, int &i) {
 
     skip_spaces(i);
 
-    bool is_vector = false;
-    bool is_matrix = false;
-    std::string size_n;
-    std::string size_m;
-
+    bool is_vector = false, is_matrix = false;
+    std::string size_n, size_m;
     if (i < current_line.size() && current_line[i] == '[') {
-        is_vector = true;
-        i++;
-        while (i < current_line.size() && current_line[i] != ']') {
-            size_n += current_line[i++];
-        }
+        is_vector = true; i++;
+        while (i < current_line.size() && current_line[i] != ']') size_n += current_line[i++];
         if (i < current_line.size() && current_line[i] == ']') i++;
     }
-
     skip_spaces(i);
-
     if (i < current_line.size() && current_line[i] == '[') {
-        is_matrix = true;
-        is_vector = false;
-        i++;
-        while (i < current_line.size() && current_line[i] != ']') {
-            size_m += current_line[i++];
-        }
+        is_matrix = true; is_vector = false; i++;
+        while (i < current_line.size() && current_line[i] != ']') size_m += current_line[i++];
         if (i < current_line.size() && current_line[i] == ']') i++;
     }
 
     if (is_matrix) {
-        int pos_n = 0, pos_m = 0;
-        int n = (int)evaluate_logic(size_n, pos_n);
-        int m = (int)evaluate_logic(size_m, pos_m);
-
+        int pn = 0, pm = 0;
+        int n = (int)evaluate_logic(size_n, pn), m = (int)evaluate_logic(size_m, pm);
         variable_types[name] = "matrix_" + command;
-
-        if (command == "int") {
-            memory_matrix_int[name].resize(n, std::vector<int>(m, 0));
-        }
-        else if (command == "bool") {
-            memory_matrix_bool[name].resize(n, std::vector<bool>(m, false));
-        }
-        else if (command == "double") {
-            memory_matrix_double[name].resize(n, std::vector<double>(m, 0.0));
-        }
-        else if (command == "string") {
-            memory_matrix_string[name].resize(n, std::vector<std::string>(m, ""));
-        }
+        if (command == "int") memory_matrix_int[name].resize(n, std::vector<int>(m, 0));
+        else if (command == "bool") memory_matrix_bool[name].resize(n, std::vector<bool>(m, false));
+        else if (command == "double") memory_matrix_double[name].resize(n, std::vector<double>(m, 0.0));
+        else if (command == "string") memory_matrix_string[name].resize(n, std::vector<std::string>(m, ""));
     }
     else if (is_vector) {
-        int pos_n = 0;
-        int n = (int)evaluate_logic(size_n, pos_n);
-
+        int pn = 0;
+        int n = (int)evaluate_logic(size_n, pn);
         variable_types[name] = "vector_" + command;
-
         if (command == "int") memory_vector_int[name].resize(n, 0);
         else if (command == "bool") memory_vector_bool[name].resize(n, false);
         else if (command == "double") memory_vector_double[name].resize(n, 0.0);
@@ -255,13 +230,35 @@ void declare_type(const std::string& command, int &i) {
     }
     else {
         variable_types[name] = command;
+        double val = 0;
+        std::string str_val = "";
 
-        if (command == "int") memory_int[name] = 0;
-        else if (command == "bool") memory_bool[name] = false;
-        else if (command == "double") memory_double[name] = 0.0;
-        else if (command == "string") memory_string[name] = "";
+        skip_spaces(i);
+        if (i < current_line.size() && current_line[i] == ':') {
+            i++;
+            skip_spaces(i);
+
+            std::string expr;
+            while(i < current_line.size() && current_line[i] != ';') expr += current_line[i++];
+
+            if (command == "string") {
+                if (expr.size() >= 2 && expr.front() == '"') {
+                    int idx = 1;
+                    while(idx < expr.size() && expr[idx] != '"') str_val += expr[idx++];
+                } else str_val = expr;
+            } else {
+                int p = 0;
+                val = evaluate_logic(expr, p);
+            }
+        }
+
+        if (command == "int") memory_int[name] = (int)val;
+        else if (command == "bool") memory_bool[name] = (val != 0);
+        else if (command == "double") memory_double[name] = val;
+        else if (command == "string") memory_string[name] = str_val;
     }
 }
+
 void read(int &i) {
     skip_spaces(i);
     std::string name;
@@ -550,38 +547,56 @@ void process_while(int &i, const std::vector<std::string>& source, int& line_idx
 void for_loop(int &i, const std::vector<std::string>& source, int& line_idx) {
     skip_spaces(i);
 
-    std::string variable_name;
-    while (i < current_line.size() && current_line[i] != ' ') variable_name += current_line[i++];
+    std::string decl_expr, cond_expr, update_expr;
 
-    skip_spaces(i);
-    std::string start_expr;
-    while (i < current_line.size() && current_line[i] != ' ') start_expr += current_line[i++];
+    while (i < current_line.size() && current_line[i] != ';') decl_expr += current_line[i++];
+    if (i < current_line.size() && current_line[i] == ';') i++;
 
-    skip_spaces(i);
-    std::string end_expr;
-    while (i < current_line.size() && current_line[i] != ' ') end_expr += current_line[i++];
+    while (i < current_line.size() && current_line[i] != ';') cond_expr += current_line[i++];
+    if (i < current_line.size() && current_line[i] == ';') i++;
 
-    skip_spaces(i);
-    std::string step_expr;
-    while (i < current_line.size() && current_line[i] != '{') step_expr += current_line[i++];
-
-    int p1 = 0, p2 = 0, p3 = 0;
-    int start = (int)evaluate_logic(start_expr, p1);
-    int end = (int)evaluate_logic(end_expr, p2);
-    int step = (int)evaluate_logic(step_expr, p3);
+    while (i < current_line.size() && current_line[i] != '{') update_expr += current_line[i++];
 
     std::vector<std::string> block = read_block(source, line_idx);
-    variable_types[variable_name] = "int";
 
-    for (int for_index = start; for_index <= end; for_index += step) {
-        memory_int[variable_name] = for_index;
+    std::string saved_line = current_line;
+    int dummy_idx = 0;
+
+    current_line = decl_expr;
+    execute_current_line({decl_expr}, dummy_idx);
+
+    while (true) {
+        int pos = 0;
+        if (evaluate_logic(cond_expr, pos) == 0) break;
+
         execute_block(block);
+
+        current_line = update_expr;
+        int temp_idx = 0;
+        execute_current_line({update_expr}, temp_idx);
     }
 
-    memory_int.erase(variable_name);
-    variable_types.erase(variable_name);
-}
+    current_line = saved_line;
 
+    int p = 0;
+    while (p < decl_expr.size() && decl_expr[p] == ' ') p++;
+
+    std::string var_type;
+    while (p < decl_expr.size() && decl_expr[p] != ' ' && decl_expr[p] != ';') var_type += decl_expr[p++];
+
+    while (p < decl_expr.size() && decl_expr[p] == ' ') p++;
+
+    std::string var_name;
+    while (p < decl_expr.size() && decl_expr[p] != ' ' && decl_expr[p] != ';') var_name += decl_expr[p++];
+
+    if (!var_name.empty()) {
+        if (var_type == "int") memory_int.erase(var_name);
+        else if (var_type == "double") memory_double.erase(var_name);
+        else if (var_type == "bool") memory_bool.erase(var_name);
+        else if (var_type == "string") memory_string.erase(var_name);
+        variable_types.erase(var_name);
+    }
+}
 void execute_current_line(const std::vector<std::string>& source, int& line_idx) {
     int i = 0;
     skip_spaces(i);
