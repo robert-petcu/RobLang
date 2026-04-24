@@ -1,4 +1,4 @@
-// Generates the Sieve of Eratosthenes up to num_elements
+// Generates all the prime numbers up to num_elements
 
 bool sieve[1000000]
 
