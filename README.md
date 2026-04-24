@@ -1,4 +1,5 @@
 
+
 # RobLang
 
 RobLang is a custom interpreted pseudolanguage. The C++ interpreter parses the entire source code into a vector of strings and executes it line by line, managing nested blocks through recursion.
@@ -17,6 +18,14 @@ The language supports four core data types and their vector (array) counterparts
 |`matrix_...`|Matrix of a specific type|`double a[100][100]`|
 
 Under the hood, all variables are dynamically stored in `std::unordered_map` structures corresponding to their data type (e.g., `memory_int`, `memory_string`, `memory_vector_double`).
+
+You can also assign values to the variables while declaring them by using the following syntax:
+```<data_type> <variable_name>: <value>```
+
+**Examples:**
+* ```int x: 10```
+* ```double pi: 3.14```
+* ```int y: x + 5```
 
 ## 2. Command Syntax
 
@@ -39,9 +48,7 @@ Under the hood, all variables are dynamically stored in `std::unordered_map` str
     -   `assign x: 10`
         
     -   `assign y: 2 * (z + 5)`
-        
-    -   `assign pi: 3.14`
-        
+  
     -   `assign v[i]: i % 10`
         
     -   `assign s: "Hello World!"`
@@ -115,18 +122,20 @@ All control structures use curly braces `{ }` to define code blocks.
     
 -   `for`
     
-    A loop that iterates based on numeric bounds.
+    A loop that iterates based on numeric bounds and logical expressions.
     
     **Syntax Example:**
     
     ```
-    for i 0 10 1 {
+    for int i: 0; i <= 10; assign i: i + 1 {
         ...
     }
     
     ```
     
     _(Meaning: "For an iterator `i` starting at 0, up to 10, increasing by 1 after each iteration.")_
+
+	**Note:** The iterator value (e.g. `i`) is local to the loop and will be deleted once the loop finishes.
     
 
 ## 5. Execution Logic
@@ -159,7 +168,7 @@ assign f[1]: 1
 
 read num_elements
 
-for i 0 num_elements 1 {
+for int i: 0; i <= num_elements; assign i: i + 1 {
     if i >= 2 {
         assign f[i]: f[i - 1] + f[i - 2]
     }
