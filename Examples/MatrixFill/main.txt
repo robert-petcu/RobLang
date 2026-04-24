@@ -5,8 +5,8 @@ int a[1000][1000]
 
 read dimension
 
-for i 1 dimension 1{
-    for j 1 dimension 1{
+for int i: 1; i <= dimension; assign i: i + 1 {
+    for int j: 1; j <= dimension; assign j: j + 1 {
         assign a[i][j]: (i - 1) * dimension + j
         print a[i][j]
         print " "
