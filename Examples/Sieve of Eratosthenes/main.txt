@@ -1,0 +1,21 @@
+// Generates the Sieve of Eratosthenes up to num_elements
+
+bool sieve[1000000]
+
+int num_elements
+read num_elements
+
+for int i: 2; i * i <= num_elements; assign i: i + 1{
+    if sieve[i] == 0{
+        for int j: 2; i * j <= num_elements; assign j: j + 1{
+            assign sieve[i * j]: 1
+        }
+    }
+}
+
+for int i: 2; i <= num_elements; assign i: i + 1{
+    if sieve[i] == 0{
+        print i
+        print "endl"
+    }
+}
