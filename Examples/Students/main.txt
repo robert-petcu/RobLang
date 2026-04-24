@@ -1,18 +1,18 @@
-// Reads a list of student names and outputs them
+// Reads a list of student names and prints them
 
 int num_students
 string name[100]
 
 read num_students
 
-for i 1 num_students 1{
+for int i: 1; i <= num_students; assign i: i + 1 {
     read name[i]
 }
 
 print "The names of the students are:"
 print "endl"
 
-for i 1 num_students 1{
+for int i: 1; i <= num_students; assign i: i + 1{
     print name[i]
     print "endl"
 }
