@@ -52,6 +52,12 @@ double evaluate_factor(const std::string& expr, int& pos) {
     skip_spaces_expr(expr, pos);
     if (pos >= expr.size()) return 0;
 
+    if (expr[pos] == '~') {
+        pos++;
+        double val = evaluate_factor(expr, pos);
+        return (double)(~(int)val);
+    }
+
     if (expr[pos] == '(') {
         pos++;
         double val = evaluate_logic(expr, pos);
@@ -91,7 +97,6 @@ double evaluate_factor(const std::string& expr, int& pos) {
         int idx_i = (int)evaluate_logic(expr, pos);
         skip_spaces_expr(expr, pos);
         if (pos < expr.size() && expr[pos] == ']') pos++;
-
         skip_spaces_expr(expr, pos);
 
         if (pos < expr.size() && expr[pos] == '[') {
@@ -99,7 +104,6 @@ double evaluate_factor(const std::string& expr, int& pos) {
             int idx_j = (int)evaluate_logic(expr, pos);
             skip_spaces_expr(expr, pos);
             if (pos < expr.size() && expr[pos] == ']') pos++;
-
             skip_spaces_expr(expr, pos);
 
             if (variable_types[var_name] == "matrix_int") return memory_matrix_int[var_name][idx_i][idx_j];
@@ -142,10 +146,29 @@ double evaluate_math(const std::string& expr, int& pos) {
     while (true) {
         skip_spaces_expr(expr, pos);
         if (pos >= expr.size()) break;
-        if (expr[pos] == '+') {
-            pos++; left += evaluate_term(expr, pos);
-        } else if (expr[pos] == '-') {
-            pos++; left -= evaluate_term(expr, pos);
+        if (pos + 1 < expr.size()) {
+            std::string op2 = expr.substr(pos, 2);
+            if (op2 == "<<") {
+                pos += 2;
+                left = (int)left << (int)evaluate_term(expr, pos);
+                continue;
+            }
+            if (op2 == ">>") {
+                pos += 2;
+                left = (int)left >> (int)evaluate_term(expr, pos);
+                continue;
+            }
+        }
+
+        char op = expr[pos];
+        if (op == '+' || op == '-' || op == '&' || op == '|' || op == '^') {
+            pos++;
+            double right = evaluate_term(expr, pos);
+            if (op == '+') left += right;
+            else if (op == '-') left -= right;
+            else if (op == '&') left = (int)left & (int)right;
+            else if (op == '|') left = (int)left | (int)right;
+            else if (op == '^') left = (int)left ^ (int)right;
         } else {
             break;
         }
