@@ -79,6 +79,8 @@ The `evaluate_logic` function and its sub-functions (`evaluate_math`, `evaluate_
 
 **3. Math:** Addition `+`, Subtraction `-`.
 
+**4. Bitwise Operations:** Bitwise And `&`, Bitwise Or `|`, Bitwise Xor `^`, Bitshift `<<`/`>>`, Bitwise Not `~`.
+
 **4. Comparisons:** `==`, `!=`, `<`, `>`, `<=`, `>=`.
 
 **5. Logic:** AND `&&`, OR `||`.
